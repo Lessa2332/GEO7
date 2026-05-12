@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Місія: Африка — Вимірювання</title>
+    <style>
+        :root { --primary: #fbbf24; --dark: #1e293b; --success: #22c55e; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffbeb; margin: 0; padding: 15px; }
+        
+        .lesson-card { max-width: 700px; margin: 0 auto; background: white; border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        
+        /* Контейнер карти-курвіметра */
+        .map-container {
+            position: relative;
+            width: 100%;
+            background: #e0f2fe;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid var(--primary);
+            cursor: crosshair;
+            touch-action: none; /* Важливо для мобільних */
+        }
+
+        #africa-map { width: 100%; display: block; }
+        
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+
+        .tool-panel {
+            background: var(--dark);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: -10px;
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-badge { background: var(--primary); color: var(--dark); padding: 5px 15px; border-radius: 10px; font-weight: bold; }
+
+        .btn-check {
+            width: 100%; padding: 15px; background: var(--success); color: white;
+            border: none; border-radius: 15px; font-weight: bold; margin-top: 20px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="lesson-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <a href="../hub.html" style="text-decoration: none;">🏠 На карту</a>
+        <span id="step-info">Крок 1: ФГП</span>
+    </div>
+
+    <h2>🦒 Дослідження Африки</h2>
+    <p><b>Завдання:</b> Використовуй цифровий курвіметр. Виміряй протяжність Африки з півночі (м. Ель-Аб'яд) на південь (м. Агульяс).</p>
+
+    <div class="map-container" id="map-area">
+        <!-- Карта-підкладка (можна замінити на вашу SVG або PNG) -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Africa_names_map_en.svg/500px-Africa_names_map_en.svg.png" id="africa-img" alt="Map">
+        <canvas id="measure-layer"></canvas>
+    </div>
+
+    <div class="tool-panel">
+        <div>Відстань: <span id="km-val" class="result-badge">0</span> км</div>
+        <button onclick="clearCanvas()" style="background:none; border:1px solid white; color:white; border-radius:5px; cursor:pointer;">Скинути</button>
+    </div>
+
+    <div id="final-block" style="display:none; margin-top: 20px;">
+        <div style="background: #f0fdf4; padding: 15px; border-radius: 15px; border-left: 5px solid var(--success);">
+            🎉 <b>Чудово!</b> Твій результат близький до істини (бл. 8000 км). Тепер зафіксуй ці дані у своєму звіті.
+        </div>
+        <button class="btn-check" onclick="sendResult()">ВІДПРАВИТИ ЗВІТ ВЧИТЕЛЮ</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('measure-layer');
+    const ctx = canvas.getContext('2d');
+    const mapArea = document.getElementById('map-area');
+    const img = document.getElementById('africa-img');
+    
+    let points = [];
+    const SCALE_FACTOR = 16.5; // Коефіцієнт: 1 піксель = 16.5 км (налаштовується під картинку)
+
+    // Підлаштування розміру канвасу під картинку
+    img.onload = () => {
+        canvas.width = mapArea.offsetWidth;
+        canvas.height = mapArea.offsetHeight;
+    };
+
+    mapArea.addEventListener('click', (e) => {
+        const rect = mapArea.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        points.push({x, y});
+        draw();
+        calculateDistance();
+    });
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (points.length < 1) return;
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+            // Малюємо крапку
+            ctx.arc(points[i].x, points[i].y, 3, 0, Math.PI * 2);
+        }
+        ctx.stroke();
+
+        // Початкова точка
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(points[0].x, points[0].y, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function calculateDistance() {
+        if (points.length < 2) return;
+        
+        let totalPx = 0;
+        for (let i = 0; i < points.length - 1; i++) {
+            const dx = points[i+1].x - points[i].x;
+            const dy = points[i+1].y - points[i].y;
+            totalPx += Math.sqrt(dx*dx + dy*dy);
+        }
+
+        const km = Math.round(totalPx * SCALE_FACTOR);
+        document.getElementById('km-val').innerText = km;
+
+        if (km > 7000 && km < 9000) {
+            document.getElementById('final-block').style.display = 'block';
+        }
+    }
+
+    function clearCanvas() {
+        points = [];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('km-val').innerText = 0;
+        document.getElementById('final-block').style.display = 'none';
+    }
+
+    function sendResult() {
+        const user = JSON.parse(localStorage.getItem('geo_user'));
+        const finalKm = document.getElementById('km-val').innerText;
+
+        if(user) {
+            user.progress.africa = 'done';
+            user.points += 150; // Більше балів за складне завдання
+            
+            // Зберігаємо локально
+            localStorage.setItem('geo_user', JSON.stringify(user));
+
+            // Тут буде виклик fetch() до вашої Google Таблиці
+            alert(`Звіт відправлено! Виміряно: ${finalKm} км. Ви отримали 150 балів!`);
+            window.location.href = "../hub.html";
+        }
+    }
+</script>
+
+</body>
+</html>
