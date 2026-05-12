@@ -3,155 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEO-QUEST | Карта Світу</title>
+    <title>GEO-QUEST | Командний Центр</title>
     <style>
         :root {
             --water: #bae6fd;
             --land-locked: #e2e8f0;
-            --land-unlocked: #fbbf24;
-            --land-done: #4ade80;
+            --land-active: #fbbf24;
+            --land-done: #22c55e;
             --primary: #2563eb;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f8fafc; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
 
         /* Верхня панель */
         .header { 
-            background: white; padding: 15px 25px; display: flex; 
+            background: white; padding: 10px 20px; display: flex; 
             justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;
         }
 
-        .user-profile { display: flex; align-items: center; gap: 12px; }
-        #user-avatar-circle { width: 45px; height: 45px; border-radius: 50%; border: 3px solid var(--land-unlocked); }
-        .user-name { font-weight: bold; color: #1e293b; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        #avatar-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--land-active); }
+        
+        .stats-badge { background: #eff6ff; padding: 5px 12px; border-radius: 15px; font-weight: bold; color: var(--primary); }
+
+        /* Контент */
+        .main-container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
 
         /* Карта */
-        .map-section { padding: 20px; max-width: 1100px; margin: 0 auto; text-align: center; }
-        .map-container { 
-            background: var(--water); border-radius: 40px; padding: 30px; 
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.1); position: relative;
-        }
-
-        svg { width: 100%; height: auto; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1)); }
-
-        .continent { 
-            fill: var(--land-locked); stroke: #fff; stroke-width: 1.5; 
-            transition: all 0.4s ease; cursor: not-allowed;
-        }
-
-        /* Класи станів материків */
-        .unlocked { fill: var(--land-unlocked); cursor: pointer; }
+        .map-box { background: var(--water); border-radius: 30px; padding: 20px; box-shadow: inset 0 0 30px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        .continent { fill: var(--land-locked); stroke: #fff; stroke-width: 1; transition: 0.3s; cursor: not-allowed; }
+        .unlocked { fill: var(--land-active); cursor: pointer; }
         .completed { fill: var(--land-done); }
-        .unlocked:hover { transform: translateY(-5px); filter: brightness(1.05); }
+        .unlocked:hover { filter: brightness(1.1); transform: translateY(-3px); }
 
-        /* Картки квестів */
-        .quest-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 20px; padding: 30px; max-width: 1100px; margin: 0 auto; 
+        /* Трофеї */
+        .trophy-shelf { 
+            display: flex; gap: 15px; background: white; padding: 15px; 
+            border-radius: 20px; margin-bottom: 25px; justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
+        .trophy { font-size: 25px; filter: grayscale(1); opacity: 0.3; transition: 0.5s; }
+        .trophy.earned { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
 
-        .quest-card {
-            background: white; border-radius: 20px; padding: 20px;
-            border-bottom: 6px solid #e2e8f0; transition: 0.3s;
+        /* Список місій */
+        .mission-list { display: grid; gap: 15px; }
+        .mission-item { 
+            background: white; border-radius: 15px; padding: 15px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 6px solid var(--land-locked);
         }
-        .quest-card.active { border-color: var(--primary); }
-        
-        .btn-go {
-            background: var(--primary); color: white; border: none;
-            padding: 10px 20px; border-radius: 12px; font-weight: bold;
-            cursor: pointer; width: 100%; margin-top: 15px;
-        }
-        .btn-go:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .mission-item.unlocked { border-left-color: var(--land-active); }
+        .mission-item.done { border-left-color: var(--land-done); }
 
+        .btn-play { 
+            background: var(--primary); color: white; border: none; 
+            padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+        .btn-play:disabled { background: #cbd5e1; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="user-profile">
-        <div id="user-avatar-circle"></div>
+    <div class="user-info">
+        <div id="avatar-circle"></div>
         <div>
-            <div class="user-name" id="name-display">Дослідник</div>
-            <div style="font-size: 0.75rem; color: #64748b;">Ранг: Юнга</div>
+            <div id="u-name" style="font-weight: bold; font-size: 0.9rem;">Дослідник</div>
+            <div id="u-rank" style="font-size: 0.7rem; color: #64748b;">Ранг: Новачок</div>
         </div>
     </div>
-    <div style="font-weight: bold; color: var(--primary);">⭐ Бали: <span id="points-display">0</span></div>
+    <div class="stats-badge">⭐ <span id="u-points">0</span></div>
 </div>
 
-<div class="map-section">
-    <h2>Оберіть материк для експедиції:</h2>
-    <div class="map-container">
+<div class="main-container">
+    
+    <!-- Полиця трофеїв -->
+    <div class="trophy-shelf">
+        <span class="trophy" id="tr-intro" title="Перші кроки">🌊</span>
+        <span class="trophy" id="tr-africa" title="Знавець Африки">🦒</span>
+        <span class="trophy" id="tr-south_america" title="Дослідник Амазонії">🦜</span>
+        <span class="trophy" id="tr-australia" title="Мисливець за кенгуру">🦘</span>
+    </div>
+
+    <!-- Інтерактивна мапа -->
+    <div class="map-box">
         <svg viewBox="0 0 1000 500">
-            <!-- Спрощені контури материків для прикладу (SVG PATHS) -->
             <!-- Африка -->
-            <path id="path-africa" class="continent unlocked" d="M480,180 L550,220 L530,350 L460,370 L420,250 Z" onclick="goLesson('africa')" />
+            <path id="map-africa" class="continent" d="M480,180 L550,220 L530,350 L460,370 L420,250 Z" onclick="openLesson('africa')" />
             <!-- Пд. Америка -->
-            <path id="path-south-america" class="continent" d="M280,250 L350,300 L320,420 L260,380 Z" onclick="goLesson('south_america')" />
-            <!-- Австралія -->
-            <path id="path-australia" class="continent" d="M750,300 L820,320 L800,380 L730,370 Z" onclick="goLesson('australia')" />
+            <path id="map-south_america" class="continent" d="M280,250 L350,300 L320,420 L260,380 Z" onclick="openLesson('south_america')" />
             
-            <text x="450" y="300" font-size="14" font-weight="bold" fill="#1e293b" pointer-events="none">АФРИКА</text>
+            <text x="450" y="300" font-size="12" fill="#1e293b" style="pointer-events:none;">АФРИКА</text>
         </svg>
     </div>
-</div>
 
-<div class="quest-grid">
-    <div class="quest-card active">
-        <span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">МІСІЯ 1</span>
-        <h3>🌍 Географічний Вступ</h3>
-        <p style="font-size: 0.9rem; color: #64748b;">Опануй цифрові прилади та вивчи Світовий океан.</p>
-        <button class="btn-go" onclick="goLesson('intro')">ПОЧАТИ</button>
-    </div>
+    <!-- Список квестів -->
+    <div class="mission-list">
+        <div class="mission-item done" id="m-intro">
+            <div>
+                <b>🌊 Місія: Світовий Океан</b><br>
+                <small>Основи навігації та глибиномір</small>
+            </div>
+            <button class="btn-play" onclick="openLesson('intro')">ПОВТОРИТИ</button>
+        </div>
 
-    <div class="quest-card" id="card-africa">
-        <span style="font-size: 0.8rem; color: #94a3b8; font-weight: bold;">МІСІЯ 2</span>
-        <h3>🦒 Африка: Сафарі-тур</h3>
-        <p style="font-size: 0.9rem; color: #64748b;">Досліди рельєф та клімат найспекотнішого материка.</p>
-        <button class="btn-go" id="btn-africa" disabled onclick="goLesson('africa')">ЗАБЛОКОВАНО</button>
+        <div class="mission-item" id="m-africa">
+            <div>
+                <b>🦒 Місія: Африка</b><br>
+                <small>Вимірювання курвіметром та рельєф</small>
+            </div>
+            <button class="btn-play" id="btn-africa" disabled onclick="openLesson('africa')">ЗАБЛОКОВАНО</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // 1. Зчитування даних з пам'яті браузера
-    window.onload = function() {
-        const savedData = localStorage.getItem('geo_user');
+    function updateHub() {
+        const data = localStorage.getItem('geo_user');
+        if(!data) { window.location.href = "index.html"; return; }
         
-        if (!savedData) {
-            // Якщо акаунта немає - повертаємо на реєстрацію
-            window.location.href = "index.html";
-            return;
+        const user = JSON.parse(data);
+        
+        // 1. Дані профілю
+        document.getElementById('u-name').innerText = user.name;
+        document.getElementById('u-points').innerText = user.points;
+        document.getElementById('avatar-circle').style.background = user.skinColor;
+        
+        // 2. Ранг на основі балів
+        if(user.points > 100) document.getElementById('u-rank').innerText = "Ранг: Дослідник";
+        if(user.points > 500) document.getElementById('u-rank').innerText = "Ранг: Профі-Географ";
+
+        // 3. Логіка розблокування (Ланцюжок прогресу)
+        const progress = user.progress;
+
+        // Вступ (завжди доступний або відмічений як виконаний)
+        if(progress.intro === 'done') {
+            document.getElementById('tr-intro').classList.add('earned');
+            
+            // Розблокуємо Африку
+            unlockMission('africa');
         }
 
-        const user = JSON.parse(savedData);
-
-        // 2. Візуалізація аватара та імені
-        document.getElementById('name-display').innerText = user.name;
-        document.getElementById('user-avatar-circle').style.background = user.skinColor;
-        document.getElementById('points-display').innerText = user.points || 0;
-
-        // 3. Перевірка прогресу для розблокування Африки
-        if (user.progress && user.progress.intro === 'done') {
-            document.getElementById('path-africa').classList.add('unlocked');
-            document.getElementById('card-africa').classList.add('active');
-            document.getElementById('btn-africa').disabled = false;
-            document.getElementById('btn-africa').innerText = "ВИРУШИТИ";
+        // Якщо Африка пройдена
+        if(progress.africa === 'done') {
+            document.getElementById('tr-africa').classList.add('earned');
+            document.getElementById('map-africa').classList.add('completed');
+            document.getElementById('m-africa').classList.add('done');
+            
+            // Тут можна додати розблокування наступного материка (Пд. Америка)
+            // unlockMission('south_america'); 
         }
-    };
-
-    function goLesson(lessonId) {
-        // Перевірка, чи розблоковано материк
-        const path = document.getElementById('path-' + lessonId.replace('_', '-'));
-        if (path && !path.classList.contains('unlocked') && lessonId !== 'intro') {
-            alert("Ця експедиція ще заблокована! Пройди попередні завдання.");
-            return;
-        }
-
-        // Перехід до файлу уроку
-        window.location.href = `lessons/${lessonId}.html`;
     }
+
+    function unlockMission(id) {
+        const btn = document.getElementById('btn-' + id);
+        const map = document.getElementById('map-' + id);
+        const card = document.getElementById('m-' + id);
+
+        if(btn) { btn.disabled = false; btn.innerText = "ВИРУШИТИ"; }
+        if(map) map.classList.add('unlocked');
+        if(card) card.classList.add('unlocked');
+    }
+
+    function openLesson(id) {
+        // Перевірка чи доступний материк (крім інтро)
+        if(id !== 'intro') {
+            const user = JSON.parse(localStorage.getItem('geo_user'));
+            if(id === 'africa' && user.progress.intro !== 'done') {
+                alert("❌ Доступ заблоковано! Спочатку пройди місію 'Світовий Океан'.");
+                return;
+            }
+        }
+        window.location.href = `lessons/${id}.html`;
+    }
+
+    // Запуск при завантаженні
+    window.onload = updateHub;
 </script>
 
 </body>
 </html>
-
