@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Місія: Світовий океан</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #22c55e;
+            --dark: #0f172a;
+            --bg: #f0f9ff;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--dark); }
+        
+        .lesson-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        /* Шапка уроку */
+        .lesson-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-link { text-decoration: none; font-size: 0.9rem; color: var(--primary); font-weight: bold; }
+        #timer { background: #e0f2fe; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+
+        /* Прилад: Батискаф */
+        .ocean-engine {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(180deg, #7dd3fc 0%, #0c4a6e 60%, #020617 100%);
+            border-radius: 20px;
+            border: 4px solid #334155;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        #bathyscaphe {
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            width: 70px;
+            transition: top 0.2s ease-out;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .bathy-icon { font-size: 40px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+        
+        .depth-info {
+            background: rgba(0,0,0,0.8);
+            color: #4ade80;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Точки дослідження */
+        .target {
+            position: absolute;
+            left: 30%;
+            width: 30px;
+            height: 30px;
+            background: rgba(251, 191, 36, 0.4);
+            border: 2px solid #fbbf24;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Завдання */
+        .task-card { background: #f8fafc; border-left: 5px solid var(--primary); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        
+        input[type="range"] { width: 100%; height: 10px; border-radius: 5px; appearance: none; background: #cbd5e1; outline: none; margin: 20px 0; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 25px; height: 25px; background: var(--primary); border-radius: 50%; cursor: pointer; }
+
+        .btn-complete { width: 100%; padding: 18px; background: var(--success); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="lesson-container">
+    <div class="lesson-header">
+        <a href="../hub.html" class="back-link">🔙 На карту</a>
+        <div id="timer">00:00</div>
+    </div>
+
+    <h1>🌊 Занурення в Океан</h1>
+    
+    <div class="task-card">
+        <b>Завдання:</b> Керуй батискафом за допомогою повзунка. Знайди <b>втрачений артефакт</b> на глибині понад 8000 метрів!
+    </div>
+
+    <div class="ocean-engine">
+        <!-- Позначки глибини -->
+        <div style="position:absolute; top:80px; right:10px; color:white; opacity:0.5; font-size:10px;">2000м</div>
+        <div style="position:absolute; top:200px; right:10px; color:white; opacity:0.5; font-size:10px;">5000м</div>
+        <div style="position:absolute; top:380px; right:10px; color:white; opacity:0.5; font-size:10px;">11000м</div>
+
+        <div id="bathyscaphe">
+            <div class="bathy-icon">🛸</div>
+            <div id="current-depth" class="depth-info">0 м</div>
+        </div>
+
+        <!-- Артефакт -->
+        <div class="target" style="top: 380px; left: 45%;" id="artifact"></div>
+    </div>
+
+    <input type="range" id="depth-slider" min="20" max="400" value="20">
+
+    <div id="status-msg" style="text-align: center; font-weight: bold; color: var(--primary); margin-bottom: 15px;">
+        Глибина безпечна. Починай занурення!
+    </div>
+
+    <div id="quiz-section" style="display: none;">
+        <div class="task-card">
+            <b>Висновок:</b> Як змінюється тиск води при зануренні батискафа?
+            <select id="user-answer" style="width:100%; padding:10px; margin-top:10px; border-radius:10px;">
+                <option value="none">-- Оберіть варіант --</option>
+                <option value="down">Тиск зменшується</option>
+                <option value="up">Тиск стрімко зростає</option>
+                <option value="same">Тиск не змінюється</option>
+            </select>
+        </div>
+        <button class="btn-complete" id="finish-btn" onclick="completeMission()">ЗАВЕРШИТИ МІСІЮ</button>
+    </div>
+</div>
+
+<script>
+    let startTime = Date.now();
+    let isFound = false;
+
+    // Таймер уроку
+    setInterval(() => {
+        let elapsed = Math.floor((Date.now() - startTime) / 1000);
+        let m = Math.floor(elapsed / 60);
+        let s = elapsed % 60;
+        document.getElementById('timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }, 1000);
+
+    // Логіка приладу
+    const slider = document.getElementById('depth-slider');
+    const bathy = document.getElementById('bathyscaphe');
+    const depthDisplay = document.getElementById('current-depth');
+    const statusMsg = document.getElementById('status-msg');
+    const artifact = document.getElementById('artifact');
+
+    slider.oninput = function() {
+        let y = this.value;
+        bathy.style.top = y + "px";
+        
+        // Перерахунок у метри (макс 11022м)
+        let meters = Math.round((y - 20) * 29); 
+        depthDisplay.innerText = meters + " м";
+
+        // Логіка зон
+        if (meters < 200) statusMsg.innerText = "☀️ Зона сонячного світла";
+        else if (meters < 1000) statusMsg.innerText = "🌥️ Сутінкова зона";
+        else statusMsg.innerText = "🌑 Абісальна зона (Темрява)";
+
+        // Перевірка знахідки
+        if (y > 370 && !isFound) {
+            isFound = true;
+            artifact.style.background = "#22c55e";
+            artifact.style.animation = "none";
+            statusMsg.innerText = "🎉 АРТЕФАКТ ЗНАЙДЕНО! Проаналізуй дані.";
+            statusMsg.style.color = "#22c55e";
+            document.getElementById('quiz-section').style.display = 'block';
+        }
+    };
+
+    function completeMission() {
+        const ans = document.getElementById('user-answer').value;
+        if (ans !== 'up') {
+            alert("Помилка у висновку! Подумай, як товща води тисне на батискаф.");
+            return;
+        }
+
+        // Збереження прогресу
+        let user = JSON.parse(localStorage.getItem('geo_user'));
+        if (user) {
+            user.progress.intro = 'done';
+            user.points += 100;
+            localStorage.setItem('geo_user', JSON.stringify(user));
+            
+            alert("Чудова робота! Ти отримуєш 100 балів. Африка розблокована!");
+            window.location.href = "../hub.html";
+        }
+    }
+</script>
+
+</body>
+</html>
