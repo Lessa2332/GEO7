@@ -2,15 +2,15 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Місія: Африка — Вимірювання</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Місія: Африка — Курвіметр</title>
     <style>
         :root { --primary: #fbbf24; --dark: #1e293b; --success: #22c55e; }
-        body { font-family: 'Segoe UI', sans-serif; background: #fffbeb; margin: 0; padding: 15px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fffbeb; margin: 0; padding: 15px; overflow-x: hidden; }
         
         .lesson-card { max-width: 700px; margin: 0 auto; background: white; border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
-        /* Контейнер карти-курвіметра */
+        /* Контейнер карти */
         .map-container {
             position: relative;
             width: 100%;
@@ -18,36 +18,30 @@
             border-radius: 20px;
             overflow: hidden;
             border: 3px solid var(--primary);
-            cursor: crosshair;
-            touch-action: none; /* Важливо для мобільних */
+            touch-action: none; /* Блокуємо стандартний скрол при малюванні */
         }
 
-        #africa-map { width: 100%; display: block; }
+        #africa-img { width: 100%; height: auto; display: block; -webkit-user-drag: none; }
         
         canvas {
             position: absolute;
             top: 0; left: 0;
-            pointer-events: none;
+            width: 100%; height: 100%;
+            pointer-events: none; /* Щоб кліки проходили крізь полотно на контейнер */
         }
 
         .tool-panel {
-            background: var(--dark);
-            color: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-top: -10px;
-            position: relative;
-            z-index: 5;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--dark); color: white; padding: 15px;
+            border-radius: 15px; margin-top: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .result-badge { background: var(--primary); color: var(--dark); padding: 5px 15px; border-radius: 10px; font-weight: bold; }
+        .result-badge { background: var(--primary); color: var(--dark); padding: 5px 15px; border-radius: 10px; font-weight: bold; min-width: 60px; text-align: center; }
 
         .btn-check {
-            width: 100%; padding: 15px; background: var(--success); color: white;
+            width: 100%; padding: 18px; background: var(--success); color: white;
             border: none; border-radius: 15px; font-weight: bold; margin-top: 20px; cursor: pointer;
+            font-size: 1rem; box-shadow: 0 4px 0 #16a34a;
         }
     </style>
 </head>
@@ -55,29 +49,28 @@
 
 <div class="lesson-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <a href="../hub.html" style="text-decoration: none;">🏠 На карту</a>
-        <span id="step-info">Крок 1: ФГП</span>
+        <a href="../hub.html" style="text-decoration: none; font-weight: bold; color: var(--dark);">🏠 На карту</a>
+        <span style="font-size: 0.8rem; opacity: 0.7;">Практична робота №2</span>
     </div>
 
-    <h2>🦒 Дослідження Африки</h2>
-    <p><b>Завдання:</b> Використовуй цифровий курвіметр. Виміряй протяжність Африки з півночі (м. Ель-Аб'яд) на південь (м. Агульяс).</p>
+    <h2 style="margin: 0 0 10px 0;">🦒 Курвіметр: Протяжність</h2>
+    <p style="font-size: 0.9rem; color: #475569;">Клікни на <b>крайню північну</b> точку, а потім на <b>крайню південну</b> точку Африки.</p>
 
     <div class="map-container" id="map-area">
-        <!-- Карта-підкладка (можна замінити на вашу SVG або PNG) -->
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Africa_names_map_en.svg/500px-Africa_names_map_en.svg.png" id="africa-img" alt="Map">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Africa_names_map_en.svg/500px-Africa_names_map_en.svg.png" id="africa-img">
         <canvas id="measure-layer"></canvas>
     </div>
 
     <div class="tool-panel">
-        <div>Відстань: <span id="km-val" class="result-badge">0</span> км</div>
-        <button onclick="clearCanvas()" style="background:none; border:1px solid white; color:white; border-radius:5px; cursor:pointer;">Скинути</button>
+        <div style="font-size: 0.9rem;">Виміряно: <span id="km-val" class="result-badge">0</span> км</div>
+        <button onclick="clearCanvas()" style="background:rgba(255,255,255,0.1); border:1px solid white; color:white; padding:5px 10px; border-radius:8px; cursor:pointer;">Очистити</button>
     </div>
 
-    <div id="final-block" style="display:none; margin-top: 20px;">
-        <div style="background: #f0fdf4; padding: 15px; border-radius: 15px; border-left: 5px solid var(--success);">
-            🎉 <b>Чудово!</b> Твій результат близький до істини (бл. 8000 км). Тепер зафіксуй ці дані у своєму звіті.
+    <div id="final-block" style="display:none; margin-top: 20px; animation: slideIn 0.5s ease;">
+        <div style="background: #f0fdf4; padding: 15px; border-radius: 15px; border-left: 5px solid var(--success); font-size: 0.9rem;">
+            ✅ <b>Точний результат!</b> Протяжність Африки з півночі на південь становить приблизно 8000 км.
         </div>
-        <button class="btn-check" onclick="sendResult()">ВІДПРАВИТИ ЗВІТ ВЧИТЕЛЮ</button>
+        <button class="btn-check" onclick="sendResult()">ЗБЕРЕГТИ ТА ЗАВЕРШИТИ</button>
     </div>
 </div>
 
@@ -88,63 +81,80 @@
     const img = document.getElementById('africa-img');
     
     let points = [];
-    const SCALE_FACTOR = 16.5; // Коефіцієнт: 1 піксель = 16.5 км (налаштовується під картинку)
+    let scaleFactor = 0;
 
-    // Підлаштування розміру канвасу під картинку
-    img.onload = () => {
+    // Автоматичне підлаштування розміру
+    function resizeCanvas() {
         canvas.width = mapArea.offsetWidth;
         canvas.height = mapArea.offsetHeight;
-    };
+        // Розрахунок масштабу: 1 піксель на карті 500px шириною ≈ 16 км
+        scaleFactor = 8000 / (canvas.height * 0.8); // Гнучкий коефіцієнт
+        draw(); 
+    }
 
-    mapArea.addEventListener('click', (e) => {
+    window.addEventListener('resize', resizeCanvas);
+    img.onload = resizeCanvas;
+    // На випадок якщо картинка вже в кеші
+    if (img.complete) resizeCanvas();
+
+    // Обробка кліку/дотику
+    mapArea.addEventListener('pointerdown', (e) => {
         const rect = mapArea.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        points.push({x, y});
-        draw();
-        calculateDistance();
+        if (points.length < 2) {
+            points.push({x, y});
+            draw();
+            calculateDistance();
+        }
     });
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (points.length < 1) return;
+        if (points.length === 0) return;
 
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-            // Малюємо крапку
-            ctx.arc(points[i].x, points[i].y, 3, 0, Math.PI * 2);
+        // Лінія
+        if (points.length === 2) {
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            ctx.lineTo(points[1].x, points[1].y);
+            ctx.stroke();
         }
-        ctx.stroke();
 
-        // Початкова точка
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc(points[0].x, points[0].y, 5, 0, Math.PI * 2);
-        ctx.fill();
+        // Точки
+        points.forEach((p, idx) => {
+            ctx.fillStyle = idx === 0 ? '#3b82f6' : '#ef4444';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "rgba(0,0,0,0.5)";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
     }
 
     function calculateDistance() {
         if (points.length < 2) return;
         
-        let totalPx = 0;
-        for (let i = 0; i < points.length - 1; i++) {
-            const dx = points[i+1].x - points[i].x;
-            const dy = points[i+1].y - points[i].y;
-            totalPx += Math.sqrt(dx*dx + dy*dy);
-        }
-
-        const km = Math.round(totalPx * SCALE_FACTOR);
+        const dx = points[1].x - points[0].x;
+        const dy = points[1].y - points[0].y;
+        const pixels = Math.sqrt(dx*dx + dy*dy);
+        
+        // Коригування масштабу під висоту картинки
+        // На даній карті Африка займає близько 85% висоти зображення
+        const km = Math.round(pixels * (8000 / (canvas.height * 0.82)));
         document.getElementById('km-val').innerText = km;
 
-        if (km > 7000 && km < 9000) {
+        // Перевірка (допускаємо похибку 15%)
+        if (km > 6800 && km < 9200) {
             document.getElementById('final-block').style.display = 'block';
+        } else {
+            alert("Спробуй ще раз. Став точки на крайній півночі (Туніс) та крайньому півдні (ПАР).");
+            clearCanvas();
         }
     }
 
@@ -156,20 +166,18 @@
     }
 
     function sendResult() {
-        const user = JSON.parse(localStorage.getItem('geo_user'));
-        const finalKm = document.getElementById('km-val').innerText;
-
-        if(user) {
-            user.progress.africa = 'done';
-            user.points += 150; // Більше балів за складне завдання
-            
-            // Зберігаємо локально
-            localStorage.setItem('geo_user', JSON.stringify(user));
-
-            // Тут буде виклик fetch() до вашої Google Таблиці
-            alert(`Звіт відправлено! Виміряно: ${finalKm} км. Ви отримали 150 балів!`);
-            window.location.href = "../hub.html";
-        }
+        const data = localStorage.getItem('geo_user');
+        if(!data) return;
+        
+        let user = JSON.parse(data);
+        user.progress.africa = 'done';
+        user.points += 150;
+        
+        localStorage.setItem('geo_user', JSON.stringify(user));
+        
+        // Тут можна додати ваш fetch до Google Sheets
+        alert("Молодець! Африка пройдена. Повертаємось на карту.");
+        window.location.href = "../hub.html";
     }
 </script>
 
