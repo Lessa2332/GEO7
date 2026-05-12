@@ -1,184 +1,137 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GEO-QUEST | Реєстрація Дослідника</title>
     <style>
         :root {
-            --primary: #4dabf7;
-            --accent: #fcc419;
-            --dark: #2c3e50;
-            --light-bg: #f8f9fa;
-            --success: #51cf66;
+            --primary: #2563eb;
+            --accent: #fbbf24;
+            --bg: #f0f9ff;
+            --white: #ffffff;
         }
 
-        html, body { height: 100%; overflow-x: hidden; background: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 10px; display: flex; justify-content: center; align-items: flex-start; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 
-        .research-station { width: 100%; max-width: 440px; background: white; border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; box-sizing: border-box; margin: auto; }
-        .progress-container { height: 6px; background: var(--light-bg); border-radius: 10px; margin-bottom: 20px; }
-        #bar { height: 100%; background: linear-gradient(90deg, var(--primary), #3bc9db); width: 0%; border-radius: 10px; transition: width 0.3s ease; }
+        .app-container { width: 100%; max-width: 400px; background: var(--white); border-radius: 30px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); box-sizing: border-box; }
 
-        .step { display: none; animation: fadeIn 0.4s ease; }
+        /* Прогрес-бар */
+        .progress-line { height: 6px; background: #e2e8f0; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        #bar { height: 100%; background: var(--primary); width: 20%; transition: width 0.4s ease; }
+
+        .step { display: none; animation: slideIn 0.4s ease; }
         .step.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        h2 { font-size: 1.2rem; color: var(--dark); margin-bottom: 15px; }
-        .btn-option { display: block; width: 100%; padding: 14px; margin-bottom: 8px; background: var(--light-bg); border: 2px solid #eee; border-radius: 12px; cursor: pointer; font-size: 0.9rem; text-align: left; color: var(--dark); -webkit-tap-highlight-color: transparent; }
-        .btn-option:active { border-color: var(--primary); background: #f0f7ff; transform: scale(0.98); }
-
-        /* Стилі звіту */
-        #result-display { display: none; text-align: left; }
-        .report-header { background: #e7f5ff; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px dashed var(--primary); }
-        .report-id { font-size: 0.7rem; color: #74c0fc; font-family: monospace; font-weight: bold; }
+        h2 { font-size: 1.3rem; color: #1e293b; text-align: center; margin-bottom: 20px; }
         
-        .stat-row { margin-bottom: 8px; }
-        .stat-label { font-size: 0.8rem; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .stat-bar-bg { height: 8px; background: #eee; border-radius: 10px; overflow: hidden; }
-        .stat-fill { height: 100%; transition: width 1.2s ease-out; width: 0%; }
+        input[type="text"] { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; text-align: center; outline: none; }
+        input[type="text"]:focus { border-color: var(--primary); }
 
-        .adaptation-card { background: #fff; border: 2px solid #f1f3f5; border-radius: 15px; padding: 12px; margin-top: 15px; }
-        .adaptation-item { font-size: 0.85rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-        .adaptation-item i { font-style: normal; font-size: 1.1rem; }
+        .btn-opt { display: block; width: 100%; padding: 14px; margin-bottom: 10px; background: #f8fafc; border: 2px solid #f1f5f9; border-radius: 15px; cursor: pointer; text-align: left; font-size: 0.95rem; transition: all 0.2s; }
+        .btn-opt:hover { background: #eff6ff; border-color: var(--primary); }
+        .btn-main { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
 
-        .summary-box { background: #fff9db; padding: 12px; border-radius: 15px; font-size: 0.8rem; margin: 15px 0; border-left: 4px solid var(--accent); }
-        
-        input[type="text"] { width: 100%; padding: 14px; border-radius: 10px; border: 2px solid #ddd; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; text-align: center; }
+        /* Візуал аватара */
+        #avatar-preview { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; border: 3px solid var(--accent); transition: background 0.3s; }
     </style>
 </head>
 <body>
 
-<div class="research-station">
-    <div class="progress-container"><div id="bar"></div></div>
+<div class="app-container">
+    <div class="progress-line"><div id="bar"></div></div>
 
-    <div class="step active" id="s1">
-        <h2>🔬 ГЕО-ПАСПОРТ:<br>Дослідження</h2>
-        <input type="text" id="nameIn" placeholder="Введи своє ім'я (напр. Данило)">
-        <button class="btn-option" style="text-align:center; background: var(--primary); color:white; font-weight:bold;" onclick="go(1)">ПОЧАТИ</button>
+    <!-- Крок 1: Ім'я -->
+    <div class="step active" id="step1">
+        <h2>🛰️ ЦЕНТР ЗВ'ЯЗКУ</h2>
+        <div id="avatar-preview" style="background: #e2e8f0;"></div>
+        <input type="text" id="u-name" placeholder="Твоє ім'я дослідника">
+        <button class="btn-main" onclick="nextStep(2)">ПІДКЛЮЧИТИСЯ</button>
     </div>
 
-    <div class="step" id="s2">
-        <h2>🎨 Колір шкіри:</h2>
-        <button class="btn-option" onclick="count('euro', 'Світла (як сонячна панель! ☀️)', 2)">⚪ Світла / Рожева</button>
-        <button class="btn-option" onclick="count('negro', 'Темна (захист від опіків! 🛡️)', 2)">🟤 Темна / Коричнева</button>
-        <button class="btn-option" onclick="count('mongo', 'Смаглява (універсальний захист 🌤️)', 2)">🟡 Смаглява / Жовтувата</button>
+    <!-- Крок 2: Шкіра (Антропологія) -->
+    <div class="step" id="step2">
+        <h2>🎨 ГЕО-ПОРТРЕТ: Шкіра</h2>
+        <button class="btn-opt" onclick="setTrait('skin', 'euro', '#ffe0bd', 3)">⚪ Світла (Європейський тип)</button>
+        <button class="btn-opt" onclick="setTrait('skin', 'negro', '#8d5524', 3)">🟤 Темна (Екваторіальний тип)</button>
+        <button class="btn-opt" onclick="setTrait('skin', 'mongo', '#ffdbac', 3)">🟡 Смаглява (Азійський тип)</button>
     </div>
 
-    <div class="step" id="s3">
-        <h2>👁️ Форма очей:</h2>
-        <button class="btn-option" onclick="count('mongo', 'З епікантусом (щит від вітру! 🌪️)', 3)">🛡️ Зі складочкою (епікантусом)</button>
-        <button class="btn-option" onclick="count('euro', 'Широкі (кращий огляд 🌍)', 3)">🌍 Широко відкриті очі</button>
-        <button class="btn-option" onclick="count('negro', 'Великі (терморегуляція 🔥)', 3)">☀️ Великі очі без складки</button>
+    <!-- Крок 3: Очі -->
+    <div class="step" id="step3">
+        <h2>👁️ ГЕО-ПОРТРЕТ: Очі</h2>
+        <button class="btn-opt" onclick="setTrait('eyes', 'wide', '', 4)">🌍 Широкі (Помірні широти)</button>
+        <button class="btn-opt" onclick="setTrait('eyes', 'narrow', '', 4)">🛡️ З епікантусом (Степи/Пустелі)</button>
     </div>
 
-    <div class="step" id="s4">
-        <h2>👃 Форма носа:</h2>
-        <button class="btn-option" onclick="count('euro', 'Вузький (гріє повітря ❄️)', 4)">👃 Вузький та високий</button>
-        <button class="btn-option" onclick="count('negro', 'Широкий (охолоджує тіло 🌡️)', 4)">👃 Широкий та плаский</button>
-        <button class="btn-option" onclick="count('mongo', 'Прямий (універсальний 🍃)', 4)">👃 Середній / Прямий</button>
-    </div>
-
-    <div class="step" id="s5">
-        <h2>👩‍🦱 Волосся (форма):</h2>
-        <button class="btn-option" onclick="count('negro', 'Кучеряве (повітряна подушка ☁️)', 5)">🌀 Дуже кучеряве</button>
-        <button class="btn-option" onclick="count('mongo', 'Жорстке (захист від пилу 🏜️)', 5)">📏 Пряме та жорстке</button>
-        <button class="btn-option" onclick="count('euro', 'М\'яке (помірний клімат 🌦️)', 5)">🌊 М'яке або хвилясте</button>
-    </div>
-
-    <div id="result-display">
-        <div class="report-header">
-            <div class="report-id">#LAB-<span id="idNum"></span></div>
-            <h2 id="finalName" style="margin: 5px 0; color: var(--dark);"></h2>
-            <div id="userType" style="font-size: 0.85rem; font-weight: bold; color: var(--success);"></div>
-        </div>
-
-        <div style="font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; color: #adb5bd;">🧬 БІОЛОГІЧНИЙ КОД:</div>
-        <div class="stat-row">
-            <div class="stat-label"><span>Європеоїдна</span> <span id="p-euro">0%</span></div>
-            <div class="stat-bar-bg"><div id="f-euro" class="stat-fill" style="background:#4dabf7;"></div></div>
-        </div>
-        <div class="stat-row">
-            <div class="stat-label"><span>Негроїдна</span> <span id="p-negro">0%</span></div>
-            <div class="stat-bar-bg"><div id="f-negro" class="stat-fill" style="background:#ff6b6b;"></div></div>
-        </div>
-        <div class="stat-row">
-            <div class="stat-label"><span>Монголоїдна</span> <span id="p-mongo">0%</span></div>
-            <div class="stat-bar-bg"><div id="f-mongo" class="stat-fill" style="background:#fcc419;"></div></div>
-        </div>
-
-        <div class="adaptation-card">
-            <div style="font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; color: var(--primary);">🔍 МОЇ АДАПТАЦІЇ (запиши в пазл):</div>
-            <div id="adaptList"></div>
-        </div>
-
-        <div class="summary-box">
-            Твій вигляд — це <b>карта мандрів</b> твоїх предків. Ти — унікальна частина людства! 🌍
-        </div>
-        
-        <button class="btn-option" style="text-align:center; background:#ced4da; font-weight:bold;" onclick="resetQuiz()">НОВЕ ДОСЛІДЖЕННЯ 🔄</button>
+    <!-- Крок 4: Фіналізація -->
+    <div class="step" id="step4">
+        <h2>🎉 ПАРАМЕТРИ ПРИЙНЯТО!</h2>
+        <div id="summary-info" style="font-size: 0.9rem; line-height: 1.5; color: #64748b; margin-bottom: 20px;"></div>
+        <button class="btn-main" onclick="createAccount()">УВІЙТИ В ХАБ 🌍</button>
     </div>
 </div>
 
 <script>
-    let res = { euro: 0, negro: 0, mongo: 0 };
-    let adaptions = [];
-    let step = 1;
-    const totalQuestions = 4; // Скорочено для швидкості на уроці
+    let userData = {
+        name: "",
+        skinType: "",
+        skinColor: "",
+        eyeType: "",
+        progress: { intro: "done" },
+        points: 10
+    };
 
-    function go(s) {
-        document.getElementById('s' + s).classList.remove('active');
-        step++;
-        if(step <= 5) {
-            document.getElementById('s' + step).classList.add('active');
-            document.getElementById('bar').style.width = ((step-1)/5 * 100) + '%';
-        } else {
-            finish();
+    function nextStep(s) {
+        if(s === 2 && !document.getElementById('u-name').value) {
+            alert("Введи ім'я!"); return;
         }
-    }
-
-    function count(r, text, s) {
-        res[r]++;
-        adaptions.push(text);
-        go(s);
-    }
-
-    function finish() {
-        document.getElementById('bar').style.width = '100%';
-        const serial = Math.floor(Math.random() * 900000 + 100000);
-        const userName = document.getElementById('nameIn').value || "Дослідник";
+        userData.name = document.getElementById('u-name').value;
         
-        document.getElementById('idNum').innerText = serial;
-        document.getElementById('finalName').innerText = "ДОСЛІДНИК: " + userName;
-        document.getElementById('result-display').style.display = 'block';
-
-        let pE = Math.round((res.euro / totalQuestions) * 100);
-        let pN = Math.round((res.negro / totalQuestions) * 100);
-        let pM = Math.round((res.mongo / totalQuestions) * 100);
-
-        setTimeout(() => {
-            document.getElementById('f-euro').style.width = pE + '%';
-            document.getElementById('f-negro').style.width = pN + '%';
-            document.getElementById('f-mongo').style.width = pM + '%';
-            document.getElementById('p-euro').innerText = pE + '%';
-            document.getElementById('p-negro').innerText = pN + '%';
-            document.getElementById('p-mongo').innerText = pM + '%';
-        }, 100);
-
-        // Визначаємо тип
-        let typeText = (pE > 75 || pN > 75 || pM > 75) ? "✅ ТИП: Виражений" : "✅ ТИП: Змішаний (я — мікс! 👍)";
-        document.getElementById('userType').innerText = typeText;
-
-        // Виводимо адаптації з іконками
-        const icons = ['🎨 ШКІРА: ', '👁️ ОЧІ: ', '👃 НІС: ', '👩‍🦱 ВОЛОССЯ: '];
-        document.getElementById('adaptList').innerHTML = adaptions.map((a, i) => 
-            `<div class="adaptation-item"><i>${icons[i]}</i> ${a}</div>`
-        ).join('');
+        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+        document.getElementById('step' + s).classList.add('active');
+        document.getElementById('bar').style.width = (s * 25) + "%";
     }
 
-    function resetQuiz() {
-        location.reload();
+    function setTrait(trait, value, color, next) {
+        if(trait === 'skin') {
+            userData.skinType = value;
+            userData.skinColor = color;
+            document.getElementById('avatar-preview').style.background = color;
+        }
+        if(trait === 'eyes') userData.eyeType = value;
+        
+        if(next === 4) {
+            document.getElementById('summary-info').innerHTML = `
+                <b>Дослідник:</b> ${userData.name}<br>
+                <b>Твій Біо-код:</b> Адаптація до клімату активована. <br>
+                Твій персональний кабінет готовий до роботи.
+            `;
+        }
+        nextStep(next);
+    }
+
+    function createAccount() {
+        // 1. Зберігаємо локально
+        localStorage.setItem('geo_user', JSON.stringify(userData));
+        
+        // 2. Відправляємо вчителю (ваша Google таблиця)
+        sendToTeacher(userData);
+
+        // 3. Переходимо до мапи (файл hub.html)
+        alert("Реєстрація успішна! Ласкаво просимо на борт.");
+        window.location.href = "hub.html"; 
+    }
+
+    async function sendToTeacher(data) {
+        const SCRIPT_URL = "ВАШ_URL_СКРИПТА";
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(data)
+        });
     }
 </script>
-
 </body>
 </html>
